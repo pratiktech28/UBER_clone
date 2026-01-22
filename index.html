@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uber - Your Journey Starts Here</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            padding: 0.7rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #000;
+        }
+
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #000;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5rem;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin-top: 70px;
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            animation: slideInLeft 0.8s ease 0.2s both;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            color: #555;
+            margin-bottom: 2rem;
+            animation: slideInLeft 0.8s ease 0.4s both;
+        }
+
+        .ride-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            animation: slideInLeft 0.8s ease 0.6s both;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #000;
+        }
+
+        .btn-large {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: slideInRight 0.8s ease 0.4s both;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Map Section */
+        .map-section {
+            padding: 5rem 2rem;
+            background: white;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s ease;
+        }
+
+        .map-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #000;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 3rem;
+        }
+
+        #map {
+            height: 500px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 2rem;
+            background: #f8f9fa;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s ease;
+        }
+
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #000;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Ride Options */
+        .ride-options {
+            padding: 5rem 2rem;
+            background: white;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .option-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            color: white;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.5s ease;
+        }
+
+        .option-card.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .option-card:hover {
+            transform: scale(1.05);
+        }
+
+        .option-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .option-card .price {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .option-card ul {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .option-card li {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .option-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+        }
+
+        /* Footer */
+        footer {
+            background: #000;
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.3s;
+        }
+
+        .footer-links a:hover {
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                padding: 2rem;
+                height: auto;
+                padding-top: 5rem;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .features-grid, .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="logo">Ride</div>
+        <div class="nav-links">
+            <a href="#ride">Ride</a>
+            <a href="#drive">Drive</a>
+            <a href="#about">About</a>
+            <button class="btn btn-primary">Sign In</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Go anywhere with Ride</h1>
+            <p>Request a ride, hop in, and go. Your journey starts here.</p>
+            
+            <div class="ride-form">
+                <div class="input-group">
+                    <label>Pickup Location</label>
+                    <input type="text" placeholder="Enter pickup location" id="pickup">
+                </div>
+                <div class="input-group">
+                    <label>Drop-off Location</label>
+                    <input type="text" placeholder="Enter destination" id="dropoff">
+                </div>
+                <button class="btn btn-primary btn-large" onclick="requestRide()">Request a Ride</button>
+            </div>
+        </div>
+        <div class="hero-image">
+            <svg width="400" height="400" viewBox="0 0 400 400">
+                <circle cx="200" cy="200" r="150" fill="#667eea" opacity="0.1"/>
+                <path d="M150 200 L250 200 L240 180 L160 180 Z" fill="#000"/>
+                <circle cx="170" cy="220" r="20" fill="#333"/>
+                <circle cx="230" cy="220" r="20" fill="#333"/>
+                <rect x="160" y="160" width="80" height="30" rx="5" fill="#667eea"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="map-section" id="map-section">
+        <h2 class="section-title">Track Your Ride in Real-Time</h2>
+        <p class="section-subtitle">See your driver's location and estimated arrival time</p>
+        <div id="map"></div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2 class="section-title">Why Choose Ride?</h2>
+        <p class="section-subtitle">Safe, reliable, and affordable rides at your fingertips</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Fast Pickup</h3>
+                <p>Get matched with nearby drivers and arrive at your destination quickly</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Safe & Secure</h3>
+                <p>All drivers are verified and background checked for your safety</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Affordable Prices</h3>
+                <p>Compare prices and choose the best option for your budget</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ride Options -->
+    <section class="ride-options">
+        <h2 class="section-title">Choose Your Ride</h2>
+        <p class="section-subtitle">Select the perfect option for your journey</p>
+        <div class="options-grid">
+            <div class="option-card">
+                <h3>🚗 RideX</h3>
+                <div class="price">$8-12</div>
+                <ul>
+                    <li>Affordable everyday rides</li>
+                    <li>4 seats available</li>
+                    <li>Standard vehicles</li>
+                </ul>
+                <button class="btn btn-primary btn-large">Select</button>
+            </div>
+            <div class="option-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <h3>✨ RideXL</h3>
+                <div class="price">$12-18</div>
+                <ul>
+                    <li>Extra space for groups</li>
+                    <li>6 seats available</li>
+                    <li>SUVs and minivans</li>
+                </ul>
+                <button class="btn btn-primary btn-large">Select</button>
+            </div>
+            <div class="option-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <h3>👔 RideLux</h3>
+                <div class="price">$20-30</div>
+                <ul>
+                    <li>Premium comfort</li>
+                    <li>4 seats available</li>
+                    <li>Luxury vehicles</li>
+                </ul>
+                <button class="btn btn-primary btn-large">Select</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#">About Us</a>
+                <a href="#">Help</a>
+                <a href="#">Safety</a>
+                <a href="#">Terms</a>
+                <a href="#">Privacy</a>
+            </div>
+            <p>&copy; 2026 Ride. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Initialize map
+        let map, marker;
+        
+        function initMap() {
+            map = L.map('map').setView([51.505, -0.09], 13);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            marker = L.marker([51.505, -0.09]).addTo(map)
+                .bindPopup('Your ride is here!')
+                .openPopup();
+            
+            // Animate marker
+            animateMarker();
+        }
+
+        function animateMarker() {
+            let lat = 51.505;
+            let lng = -0.09;
+            setInterval(() => {
+                lat += (Math.random() - 0.5) * 0.01;
+                lng += (Math.random() - 0.5) * 0.01;
+                marker.setLatLng([lat, lng]);
+            }, 2000);
+        }
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            
+            const mapSection = document.querySelector('.map-section');
+            const featureCards = document.querySelectorAll('.feature-card');
+            const optionCards = document.querySelectorAll('.option-card');
+            
+            observer.observe(mapSection);
+            featureCards.forEach((card, index) => {
+                card.style.transitionDelay = `${index * 0.1}s`;
+                observer.observe(card);
+            });
+            optionCards.forEach((card, index) => {
+                card.style.transitionDelay = `${index * 0.15}s`;
+                observer.observe(card);
+            });
+        });
+
+        function requestRide() {
+            const pickup = document.getElementById('pickup').value;
+            const dropoff = document.getElementById('dropoff').value;
+            
+            if (pickup && dropoff) {
+                alert(`🚗 Ride requested!\nPickup: ${pickup}\nDestination: ${dropoff}\n\nFinding nearby drivers...`);
+            } else {
+                alert('Please enter both pickup and drop-off locations');
+            }
+        }
+    </script>
+</body>
+</html>
