@@ -1,4 +1,4 @@
-# 🚗 Uber Clone - Frontend Project
+# 🚗 Uber Clone - Frontend Clone Project
 
 A modern, responsive, and interactive **Uber UI Clone** built using pure web technologies. This project focuses on replicating the core user experience of the Uber web/mobile interface, including location searching and car selection.
 
